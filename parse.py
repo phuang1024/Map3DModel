@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import xml.etree.ElementTree as ET
 
+import numpy as np
+
 
 @dataclass
 class Node:
@@ -16,20 +18,69 @@ class Way:
     tags: dict[str, str]
 
 
+@dataclass
+class Relation:
+    # TODO
+    pass
+
+
+@dataclass
+class OSM:
+    nodes: dict[int, Node]
+    # TODO maybe make ways and relations dicts.
+    ways: list[Way]
+    relations: list[Relation]
+
+    # lat and lon bounds
+    top: float
+    left: float
+    bottom: float
+    right: float
+
+    # Size (blender units) of X side (longitude difference).
+    # Y is calculated from aspect.
+    blender_size: float = 10
+    # Additional scaling applied to Y direction; compensate for distortion.
+    scaling_factor: float = 1
+
+    def world_to_blender(self, lat, lon):
+        bl_x_size = self.blender_size
+        bl_y_size = self.scaling_factor * bl_x_size * (self.top - self.bottom) / (self.right - self.left)
+        x = np.interp(lon, [self.left, self.right], [-bl_x_size / 2, bl_x_size / 2])
+        y = np.interp(lat, [self.top, self.bottom], [bl_y_size / 2, -bl_y_size / 2])
+        return x, y
+
+
 def parse_osm(root):
     """
-    root is tree.getroot()
+    root: tree.getroot()
+    x_metric: Diff in longitude for a fixed distance.
+    y_metric: Diff in latitude for that same fixed distance.
     """
-    nodes = []
+    nodes = {}
     ways = []
     relations = []
+
+    top = float("inf")
+    left = float("inf")
+    bottom = float("-inf")
+    right = float("-inf")
+
     for child in root:
         if child.tag == "node":
-            nodes.append(Node(
-                id=int(child.attrib["id"]),
-                lat=float(child.attrib["lat"]),
-                lon=float(child.attrib["lon"]),
-            ))
+            id = int(child.attrib["id"])
+            lat = float(child.attrib["lat"])
+            lon = float(child.attrib["lon"])
+            nodes[id] = Node(
+                id=id,
+                lat=lat,
+                lon=lon,
+            )
+
+            top = min(top, lat)
+            left = min(left, lon)
+            bottom = max(bottom, lat)
+            right = max(right, lon)
 
         elif child.tag == "way":
             way = Way(
@@ -39,7 +90,7 @@ def parse_osm(root):
             )
             for subchild in child:
                 if subchild.tag == "nd":
-                    way.nodes.append(subchild.attrib["ref"])
+                    way.nodes.append(nodes[int(subchild.attrib["ref"])])
                 elif subchild.tag == "tag":
                     way.tags[subchild.attrib["k"]] = subchild.attrib["v"]
             ways.append(way)
@@ -48,22 +99,28 @@ def parse_osm(root):
             # TODO
             pass
 
-    return {
-        "nodes": nodes,
-        "ways": ways,
-        "relations": relations,
-    }
+    # TODO explain this
+    scaling = 1 / np.cos(np.radians(top))
+
+    return OSM(
+        nodes=nodes,
+        ways=ways,
+        relations=relations,
+        top=top,
+        left=left,
+        bottom=bottom,
+        right=right,
+        scaling_factor=scaling,
+    )
+
+
+def parse_osm_file(path):
+    tree = ET.parse(path)
+    root = tree.getroot()
+    return parse_osm(root)
 
 
 if __name__ == "__main__":
     path = "test.osm"
-
-    tree = ET.parse(path)
-    root = tree.getroot()
-    data = parse_osm(root)
-
-    for node in data["nodes"]:
-        print(node)
-
-    for way in data["ways"]:
-        print(way)
+    data = parse_osm_file(path)
+    print(data)
