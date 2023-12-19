@@ -1,19 +1,13 @@
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import bpy
 import numpy as np
 
-from parse import *
-
-ROAD_SCALING = 0.01
+from .parse_osm import *
 
 
-def plot_node(osm: OSM, node: Node):
+def plot_node(context, osm: OSM, node: Node):
     mesh = bpy.data.meshes.new(f"node_{node.id}")
     obj = bpy.data.objects.new(f"node_{node.id}", mesh)
-    bpy.context.scene.collection.objects.link(obj)
+    context.scene.collection.objects.link(obj)
 
     verts = []
     x, y = osm.world_to_blender(node.lat, node.lon)
@@ -22,10 +16,10 @@ def plot_node(osm: OSM, node: Node):
     mesh.from_pydata(verts, [], [])
 
 
-def make_all_buildings(osm: OSM):
+def make_all_buildings(context, osm: OSM):
     mesh = bpy.data.meshes.new("buildings")
     obj = bpy.data.objects.new("buildings", mesh)
-    bpy.context.scene.collection.objects.link(obj)
+    context.scene.collection.objects.link(obj)
 
     i = 0
     verts = []
@@ -59,10 +53,10 @@ def get_road_width(key: str) -> float | None:
     if key in ("residential", "unclassified"):
         return 1
 
-def make_road(osm: OSM, way: Way, verts, edges, faces):
+def make_road(context, osm: OSM, way: Way, verts, edges, faces):
     width = get_road_width(way.tags["highway"])
     assert width is not None
-    width *= ROAD_SCALING
+    width *= context.scene.mapmodel.road_scaling * 0.01
 
     for i, node in enumerate(way.nodes):
         # Get unit vector following curve at this node.
@@ -95,10 +89,10 @@ def make_road(osm: OSM, way: Way, verts, edges, faces):
         if i != 0:
             faces.append([len(verts) - 4, len(verts) - 2, len(verts) - 1, len(verts) - 3])
 
-def make_all_roads(osm: OSM):
+def make_all_roads(context, osm: OSM):
     mesh = bpy.data.meshes.new("roads")
     obj = bpy.data.objects.new("roads", mesh)
-    bpy.context.scene.collection.objects.link(obj)
+    context.scene.collection.objects.link(obj)
 
     verts = []
     edges = []
@@ -107,18 +101,14 @@ def make_all_roads(osm: OSM):
     for way in osm.ways:
         if "highway" in way.tags:
             if get_road_width(way.tags["highway"]) is not None:
-                make_road(osm, way, verts, edges, faces)
+                make_road(context, osm, way, verts, edges, faces)
 
     mesh.from_pydata(verts, edges, faces)
 
 
-def main():
-    path = "./Miller_Johnson_Bollinger_Rainbow.osm"
-    osm = parse_osm_file(path)
+def make_model_main(context):
+    osm = parse_osm_file(context.scene.mapmodel.osm_path)
+    osm.blender_size = context.scene.mapmodel.world_size
 
-    make_all_buildings(osm)
-    make_all_roads(osm)
-
-
-if __name__ == "__main__":
-    main()
+    make_all_buildings(context, osm)
+    make_all_roads(context, osm)
