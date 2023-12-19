@@ -121,6 +121,8 @@ def parse_osm_file(path):
 
 
 if __name__ == "__main__":
-    path = "test.osm"
+    path = "test2.osm"
     data = parse_osm_file(path)
-    print(data)
+    for way in data.ways:
+        if "building" not in way.tags:
+            print(way)
