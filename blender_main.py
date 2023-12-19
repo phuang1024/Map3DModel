@@ -7,7 +7,7 @@ import numpy as np
 
 from parse import *
 
-ROAD_SCALING = 0.008
+ROAD_SCALING = 0.01
 
 
 def plot_node(osm: OSM, node: Node):
@@ -113,7 +113,7 @@ def make_all_roads(osm: OSM):
 
 
 def main():
-    path = "./DeAnza_Lawrence_Bollinger_Prospect.osm"
+    path = "./Miller_Johnson_Bollinger_Rainbow.osm"
     osm = parse_osm_file(path)
 
     make_all_buildings(osm)
