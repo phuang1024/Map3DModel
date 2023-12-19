@@ -7,7 +7,7 @@ import numpy as np
 
 from parse import *
 
-ROAD_SCALING = 0.013
+ROAD_SCALING = 0.008
 
 
 def plot_node(osm: OSM, node: Node):
@@ -47,15 +47,15 @@ def get_road_width(key: str) -> float | None:
     None if not a valid road for our purposes.
     """
     if key.startswith("motorway"):
-        return 5
+        return 2.7
     if key.startswith("trunk"):
-        return 4
-    if key.startswith("primary"):
-        return 3.2
-    if key.startswith("secondary"):
         return 2.4
+    if key.startswith("primary"):
+        return 2.1
+    if key.startswith("secondary"):
+        return 1.7
     if key.startswith("tertiary"):
-        return 1.6
+        return 1.4
     if key in ("residential", "unclassified"):
         return 1
 
@@ -113,7 +113,7 @@ def make_all_roads(osm: OSM):
 
 
 def main():
-    path = "./Blaney_Johnson_Bollinger_Rainbow.osm"
+    path = "./DeAnza_Lawrence_Bollinger_Prospect.osm"
     osm = parse_osm_file(path)
 
     make_all_buildings(osm)
