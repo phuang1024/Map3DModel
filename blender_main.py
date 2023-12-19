@@ -7,7 +7,7 @@ import numpy as np
 
 from parse import *
 
-ROAD_SCALING = 0.01
+ROAD_SCALING = 0.013
 
 
 def plot_node(osm: OSM, node: Node):
@@ -61,12 +61,39 @@ def get_road_width(key: str) -> float | None:
 
 def make_road(osm: OSM, way: Way, verts, edges, faces):
     width = get_road_width(way.tags["highway"])
+    assert width is not None
+    width *= ROAD_SCALING
 
     for i, node in enumerate(way.nodes):
-        x, y = osm.world_to_blender(node.lat, node.lon)
-        verts.append((x, y, 0))
+        # Get unit vector following curve at this node.
+        # If an edge node, use the tangent of the edge.
+        # If a middle node, use the connecting line between the two neighbors.
+        loc_this = np.array(osm.world_to_blender(node.lat, node.lon))
+        if i > 0:
+            node_prev = way.nodes[i - 1]
+            loc_prev = np.array(osm.world_to_blender(node_prev.lat, node_prev.lon))
+        if i < len(way.nodes) - 1:
+            node_next = way.nodes[i + 1]
+            loc_next = np.array(osm.world_to_blender(node_next.lat, node_next.lon))
+        if i == 0:
+            tangent = loc_next - loc_this
+        elif i == len(way.nodes) - 1:
+            tangent = loc_this - loc_prev
+        else:
+            tangent = loc_next - loc_prev
+        tangent /= np.linalg.norm(tangent)
+
+        left = np.array([-tangent[1], tangent[0]]) * width
+        right = -left
+        left = loc_this + left
+        right = loc_this + right
+        left = (left[0], left[1], 0)
+        right = (right[0], right[1], 0)
+
+        verts.append(left)
+        verts.append(right)
         if i != 0:
-            edges.append((len(verts) - 2, len(verts) - 1))
+            faces.append([len(verts) - 4, len(verts) - 2, len(verts) - 1, len(verts) - 3])
 
 def make_all_roads(osm: OSM):
     mesh = bpy.data.meshes.new("roads")
@@ -89,7 +116,7 @@ def main():
     path = "./Blaney_Johnson_Bollinger_Rainbow.osm"
     osm = parse_osm_file(path)
 
-    #make_all_buildings(osm)
+    make_all_buildings(osm)
     make_all_roads(osm)
 
 
