@@ -110,5 +110,7 @@ def make_model_main(context):
     osm = parse_osm_file(context.scene.mapmodel.osm_path)
     osm.blender_size = context.scene.mapmodel.world_size
 
-    make_all_buildings(context, osm)
-    make_all_roads(context, osm)
+    if context.scene.mapmodel.make_buildings:
+        make_all_buildings(context, osm)
+    if context.scene.mapmodel.make_roads:
+        make_all_roads(context, osm)

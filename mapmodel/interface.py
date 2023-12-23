@@ -26,6 +26,18 @@ class MapModel_Props(bpy.types.PropertyGroup):
         soft_max=5,
     )
 
+    make_buildings: bpy.props.BoolProperty(
+        name="Make Buildings",
+        description="Make buildings.",
+        default=True,
+    )
+
+    make_roads: bpy.props.BoolProperty(
+        name="Make Roads",
+        description="Make roads.",
+        default=True,
+    )
+
 
 class MapModel_OT_MakeModel(bpy.types.Operator):
     bl_idname = "mapmodel.make_model"
@@ -57,5 +69,8 @@ class MapModel_PT_Main(MapModel_BasePanel, bpy.types.Panel):
         layout.separator()
         layout.prop(context.scene.mapmodel, "road_scaling")
         layout.prop(context.scene.mapmodel, "world_size")
+        layout.separator()
+        layout.prop(context.scene.mapmodel, "make_buildings")
+        layout.prop(context.scene.mapmodel, "make_roads")
         layout.separator()
         layout.operator("mapmodel.make_model")
