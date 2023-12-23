@@ -107,7 +107,8 @@ def make_all_roads(context, osm: OSM):
 
 
 def make_model_main(context):
-    osm = parse_osm_file(context.scene.mapmodel.osm_path)
+    path = bpy.path.abspath(context.scene.mapmodel.osm_path)
+    osm = parse_osm_file(path)
     osm.blender_size = context.scene.mapmodel.world_size
 
     if context.scene.mapmodel.make_buildings:
