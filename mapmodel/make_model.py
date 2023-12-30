@@ -50,7 +50,7 @@ def get_road_width(key: str) -> float | None:
         return 1.7
     if key.startswith("tertiary"):
         return 1.4
-    if key in ("residential", "unclassified"):
+    if key in ("residential", "unclassified", "track", "footway", "cycleway", "path"):
         return 1
 
 def make_road(context, osm: OSM, way: Way, verts, edges, faces):
