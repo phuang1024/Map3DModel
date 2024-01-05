@@ -2,6 +2,26 @@ import bpy
 
 from .make_model import make_model_main
 
+ROAD_TYPES = (
+    "motorway",
+    "trunk",
+    "primary",
+    "secondary",
+    "tertiary",
+    "residential",
+    "footway",
+)
+
+DEFAULT_WIDTHS = (
+    2.7,
+    2.4,
+    2.1,
+    1.7,
+    1.4,
+    1,
+    1,
+)
+
 
 class MapModel_Props(bpy.types.PropertyGroup):
     osm_path: bpy.props.StringProperty(
@@ -37,6 +57,10 @@ class MapModel_Props(bpy.types.PropertyGroup):
         description="Make roads.",
         default=True,
     )
+
+    for _name, _default_width in zip(ROAD_TYPES, DEFAULT_WIDTHS):
+        exec(f"{_name}_enabled: bpy.props.BoolProperty(name='{_name}', default=True)")
+        exec(f"{_name}_width: bpy.props.FloatProperty(name='{_name} Width', default={_default_width}, min=0, soft_max=10)")
 
 
 class MapModel_OT_MakeModel(bpy.types.Operator):
@@ -74,3 +98,20 @@ class MapModel_PT_Main(MapModel_BasePanel, bpy.types.Panel):
         layout.prop(context.scene.mapmodel, "make_roads")
         layout.separator()
         layout.operator("mapmodel.make_model")
+
+
+class MapModel_PT_Roads(MapModel_BasePanel, bpy.types.Panel):
+    bl_idname = "MapModel_PT_Roads"
+    bl_parent_id = "MapModel_PT_Main"
+    bl_label = "Roads"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Road visibility and widths.")
+
+        for name in ROAD_TYPES:
+            row = layout.row()
+            row.prop(context.scene.mapmodel, f"{name}_enabled", text=name.capitalize())
+            col = row.column()
+            col.enabled = getattr(context.scene.mapmodel, f"{name}_enabled")
+            col.prop(context.scene.mapmodel, f"{name}_width", text="")

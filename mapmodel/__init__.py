@@ -19,6 +19,7 @@ classes = (
     MapModel_Props,
     MapModel_OT_MakeModel,
     MapModel_PT_Main,
+    MapModel_PT_Roads,
 )
 
 def register():

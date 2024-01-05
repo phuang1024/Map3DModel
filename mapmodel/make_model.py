@@ -36,25 +36,28 @@ def make_all_buildings(context, osm: OSM):
     mesh.from_pydata(verts, [], faces)
 
 
-def get_road_width(key: str) -> float | None:
+def get_road_width(context, key: str) -> float | None:
     """
     None if not a valid road for our purposes.
     """
-    if key.startswith("motorway"):
-        return 2.7
-    if key.startswith("trunk"):
-        return 2.4
-    if key.startswith("primary"):
-        return 2.1
-    if key.startswith("secondary"):
-        return 1.7
-    if key.startswith("tertiary"):
-        return 1.4
-    if key in ("residential", "unclassified", "track", "footway", "cycleway", "path"):
-        return 1
+    p = context.scene.mapmodel
+    if key.startswith("motorway") and p.motorway_enabled:
+        return p.motorway_width
+    elif key.startswith("trunk") and p.trunk_enabled:
+        return p.trunk_width
+    elif key.startswith("primary") and p.primary_enabled:
+        return p.primary_width
+    elif key.startswith("secondary") and p.secondary_enabled:
+        return p.secondary_width
+    elif key.startswith("tertiary") and p.tertiary_enabled:
+        return p.tertiary_width
+    elif key.startswith("residential") and p.residential_enabled:
+        return p.residential_width
+    elif key in ("unclassified", "track", "footway", "cycleway", "path") and p.footway_enabled:
+        return p.footway_width
 
 def make_road(context, osm: OSM, way: Way, verts, edges, faces):
-    width = get_road_width(way.tags["highway"])
+    width = get_road_width(context, way.tags["highway"])
     assert width is not None
     width *= context.scene.mapmodel.road_scaling * 0.01
 
@@ -100,7 +103,7 @@ def make_all_roads(context, osm: OSM):
 
     for way in osm.ways:
         if "highway" in way.tags:
-            if get_road_width(way.tags["highway"]) is not None:
+            if get_road_width(context, way.tags["highway"]) is not None:
                 make_road(context, osm, way, verts, edges, faces)
 
     mesh.from_pydata(verts, edges, faces)
