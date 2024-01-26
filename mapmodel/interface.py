@@ -23,7 +23,7 @@ DEFAULT_WIDTHS = (
 )
 
 
-class MapModel_Props(bpy.types.PropertyGroup):
+class MAPMODEL_Props(bpy.types.PropertyGroup):
     osm_path: bpy.props.StringProperty(
         name="OSM File",
         description="Path to the OSM file.",
@@ -63,7 +63,7 @@ class MapModel_Props(bpy.types.PropertyGroup):
         exec(f"{_name}_width: bpy.props.FloatProperty(name='{_name} Width', default={_default_width}, min=0, soft_max=10)")
 
 
-class MapModel_OT_MakeModel(bpy.types.Operator):
+class MAPMODEL_OT_MakeModel(bpy.types.Operator):
     bl_idname = "mapmodel.make_model"
     bl_label = "Make Model"
     bl_description = "Make object(s) from OSM file"
@@ -73,7 +73,7 @@ class MapModel_OT_MakeModel(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class MapModel_BasePanel:
+class MAPMODEL_BasePanel:
     """
     Common properties.
     """
@@ -83,8 +83,8 @@ class MapModel_BasePanel:
     bl_options = {"DEFAULT_CLOSED"}
 
 
-class MapModel_PT_Main(MapModel_BasePanel, bpy.types.Panel):
-    bl_idname = "MapModel_PT_Main"
+class MAPMODEL_PT_Main(MAPMODEL_BasePanel, bpy.types.Panel):
+    bl_idname = "MAPMODEL_PT_Main"
     bl_label = "MapModel"
 
     def draw(self, context):
@@ -100,9 +100,9 @@ class MapModel_PT_Main(MapModel_BasePanel, bpy.types.Panel):
         layout.operator("mapmodel.make_model")
 
 
-class MapModel_PT_Roads(MapModel_BasePanel, bpy.types.Panel):
-    bl_idname = "MapModel_PT_Roads"
-    bl_parent_id = "MapModel_PT_Main"
+class MAPMODEL_PT_Roads(MAPMODEL_BasePanel, bpy.types.Panel):
+    bl_idname = "MAPMODEL_PT_Roads"
+    bl_parent_id = "MAPMODEL_PT_Main"
     bl_label = "Roads"
 
     def draw(self, context):

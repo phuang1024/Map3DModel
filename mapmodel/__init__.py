@@ -16,16 +16,16 @@ from .interface import *
 
 
 classes = (
-    MapModel_Props,
-    MapModel_OT_MakeModel,
-    MapModel_PT_Main,
-    MapModel_PT_Roads,
+    MAPMODEL_Props,
+    MAPMODEL_OT_MakeModel,
+    MAPMODEL_PT_Main,
+    MAPMODEL_PT_Roads,
 )
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    bpy.types.Scene.mapmodel = bpy.props.PointerProperty(type=MapModel_Props)
+    bpy.types.Scene.mapmodel = bpy.props.PointerProperty(type=MAPMODEL_Props)
 
 def unregister():
     for cls in classes:
